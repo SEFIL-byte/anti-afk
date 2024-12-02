@@ -1,0 +1,84 @@
+local Players = game:GetService("Players")
+local VirtualUser = game:GetService("VirtualUser")
+local player = Players.LocalPlayer
+
+-- Variables
+local antiAFKEnabled = false
+local gui = Instance.new("ScreenGui")
+local frame = Instance.new("Frame")
+local toggleButton = Instance.new("TextButton")
+local notificationFrame = Instance.new("Frame")
+local notificationText = Instance.new("TextLabel")
+
+-- GUI Setup
+gui.Name = "AntiAFKGui"
+gui.Parent = game.CoreGui -- Parent to CoreGui so it shows in-game
+
+frame.Name = "MainFrame"
+frame.Size = UDim2.new(0, 200, 0, 100)
+frame.Position = UDim2.new(0.5, -100, 0.5, -50)
+frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+frame.BorderSizePixel = 2
+frame.Active = true
+frame.Draggable = true
+frame.Parent = gui
+
+toggleButton.Name = "ToggleButton"
+toggleButton.Size = UDim2.new(0.8, 0, 0.4, 0)
+toggleButton.Position = UDim2.new(0.1, 0, 0.3, 0)
+toggleButton.Text = "Anti-AFK: OFF"
+toggleButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleButton.Font = Enum.Font.SourceSans
+toggleButton.TextSize = 20
+toggleButton.Parent = frame
+
+notificationFrame.Name = "NotificationFrame"
+notificationFrame.Size = UDim2.new(0, 250, 0, 50)
+notificationFrame.Position = UDim2.new(1, -260, 1, -60)
+notificationFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+notificationFrame.Visible = false
+notificationFrame.Parent = gui
+
+notificationText.Name = "NotificationText"
+notificationText.Size = UDim2.new(1, 0, 1, 0)
+notificationText.Text = "Anti-AFK: OFF"
+notificationText.BackgroundTransparency = 1
+notificationText.TextColor3 = Color3.fromRGB(255, 255, 255)
+notificationText.Font = Enum.Font.SourceSans
+notificationText.TextSize = 20
+notificationText.Parent = notificationFrame
+
+-- Anti-AFK Function
+local function preventAFK()
+    VirtualUser:CaptureController()
+    VirtualUser:ClickButton2(Vector2.new(math.random(100, 400), math.random(100, 400)))
+end
+
+-- Toggle Function
+local function toggleAntiAFK()
+    antiAFKEnabled = not antiAFKEnabled
+    toggleButton.Text = "Anti-AFK: " .. (antiAFKEnabled and "ON" or "OFF")
+    
+    -- Show Notification
+    notificationText.Text = "Anti-AFK: " .. (antiAFKEnabled and "ON" or "OFF")
+    notificationFrame.Visible = true
+    task.delay(2, function()
+        notificationFrame.Visible = false
+    end)
+    
+    -- Connect or Disconnect Anti-AFK
+    if antiAFKEnabled then
+        player.Idled:Connect(preventAFK)
+    else
+        for _, connection in pairs(getconnections(player.Idled)) do
+            connection:Disable()
+        end
+    end
+end
+
+-- Button Click Event
+toggleButton.MouseButton1Click:Connect(toggleAntiAFK)
+
+-- Initial State
+toggleAntiAFK() -- Start with Anti-AFK OFF
